@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -8,42 +9,44 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Map<String, dynamic>? _userData;
   List<Map<String, dynamic>> _recentScans = [];
   bool _isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true;
 
   final List<Map<String, dynamic>> _tips = [
     {
       'icon': '♻️',
       'title': 'Plastik',
       'tip': 'Plastik şişeleri yıkayıp kapağını ayırın. Sarı kutuya atın.',
-      'color': Colors.amber,
+      'color': Color(0xFFFFEB3B)
     },
     {
       'icon': '🫙',
       'title': 'Cam',
       'tip': 'Cam şişeleri kırmadan yeşil kutuya atın.',
-      'color': Colors.green,
+      'color': Color(0xFF4CAF50)
     },
     {
       'icon': '📄',
       'title': 'Kağıt',
-      'tip':
-          'Islak veya yağlı kağıtları geri dönüşüme atmayın. Mavi kutuya atın.',
-      'color': Colors.blue,
+      'tip': 'Islak veya yağlı kağıtları geri dönüşüme atmayın.',
+      'color': Color(0xFF2196F3)
     },
     {
       'icon': '🥫',
       'title': 'Metal',
       'tip': 'Konserve kutularını yıkayın. Gri kutuya atın.',
-      'color': Colors.grey,
+      'color': Color(0xFF9E9E9E)
     },
     {
       'icon': '🍂',
       'title': 'Organik',
       'tip': 'Yemek artıklarını kahverengi kutuya atın.',
-      'color': Colors.brown,
+      'color': Color(0xFF795548)
     },
   ];
 
@@ -57,18 +60,22 @@ class _HomeTabState extends State<HomeTab> {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
+    setState(() => _isLoading = true);
+
     try {
+      // Kullanıcı verileri
       final userResponse = await Supabase.instance.client
           .from('users')
           .select()
           .eq('id', userId)
           .single();
 
+      // Son taramalar (created_at veya scanned_at)
       final scansResponse = await Supabase.instance.client
           .from('scans')
           .select()
           .eq('user_id', userId)
-          .order('scanned_at', ascending: false)
+          .order('created_at', ascending: false)
           .limit(5);
 
       if (mounted) {
@@ -79,22 +86,27 @@ class _HomeTabState extends State<HomeTab> {
         });
       }
     } catch (e) {
+      print('Veri yükleme hatası: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF2E7D32)))
           : RefreshIndicator(
               onRefresh: _loadData,
+              color: const Color(0xFF2E7D32),
               child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  // ---------------------------
-                  //      DÜZELTİLMİŞ APPBAR
-                  // ---------------------------
+                  // Modern Header
                   SliverAppBar(
                     expandedHeight: 200,
                     floating: false,
@@ -102,185 +114,137 @@ class _HomeTabState extends State<HomeTab> {
                     backgroundColor: const Color(0xFF2E7D32),
                     flexibleSpace: FlexibleSpaceBar(
                       background: Container(
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color(0xFF1B5E20),
+                              const Color(0xFF2E7D32),
+                              const Color(0xFF43A047),
+                            ],
                           ),
                         ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 40),
-                              const Text('🌍', style: TextStyle(fontSize: 50)),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Merhaba, ${_userData?['display_name'] ?? 'Kullanıcı'}!',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
+                        child: SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '🌍 EcoScan',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Merhaba, ${_userData?['display_name'] ?? 'Kullanıcı'}!',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Bugün ne geri dönüştürelim? 🚀',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
 
-                  // ---------------------------
-                  //        CONTENT (BODY)
-                  // ---------------------------
+                  // Content
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // İstatistik Kartları
                           Row(
                             children: [
-                              _buildStatCard(
-                                  '🏆',
-                                  '${_userData?['total_points'] ?? 0}',
-                                  'Puan',
-                                  Colors.amber),
+                              _buildModernStatCard(
+                                icon: '🏆',
+                                value: '${_userData?['total_points'] ?? 0}',
+                                label: 'Puan',
+                                color: const Color(0xFFFFB300),
+                              ),
                               const SizedBox(width: 12),
-                              _buildStatCard(
-                                  '📊',
-                                  '${_userData?['total_scans'] ?? 0}',
-                                  'Tarama',
-                                  Colors.blue),
+                              _buildModernStatCard(
+                                icon: '📊',
+                                value: '${_userData?['total_scans'] ?? 0}',
+                                label: 'Tarama',
+                                color: const Color(0xFF1E88E5),
+                              ),
                               const SizedBox(width: 12),
-                              _buildStatCard(
-                                  '🔥',
-                                  '${_userData?['current_streak'] ?? 0}',
-                                  'Seri',
-                                  Colors.orange),
+                              _buildModernStatCard(
+                                icon: '🔥',
+                                value: '${_userData?['current_streak'] ?? 0}',
+                                label: 'Seri',
+                                color: const Color(0xFFFF6F00),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 24),
 
-                          // Günün ipucu
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.green.shade400,
-                                  Colors.green.shade600
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              children: [
-                                const Text('💡',
-                                    style: TextStyle(fontSize: 40)),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Günün İpucu',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _tips[DateTime.now().day % _tips.length]
-                                            ['tip'],
-                                        style: const TextStyle(
-                                            color: Colors.white70),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          // Son Tarama - ÖNE ÇIKMIŞ
+                          if (_recentScans.isNotEmpty) _buildLastScanCard(),
+                          if (_recentScans.isNotEmpty)
+                            const SizedBox(height: 24),
+
+                          // Günün İpucu
+                          _buildTipCard(),
                           const SizedBox(height: 24),
 
-                          // Rehber
+                          // Rehber Kartları
                           const Text(
                             '♻️ Geri Dönüşüm Rehberi',
                             style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 12),
-
-                          SizedBox(
-                            height: 140,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _tips.length,
-                              itemBuilder: (context, index) {
-                                final tip = _tips[index];
-                                return Container(
-                                  width: 120,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        (tip['color'] as Color).withAlpha(30),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color:
-                                          (tip['color'] as Color).withAlpha(80),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Text(tip['icon'],
-                                          style: const TextStyle(fontSize: 36)),
-                                      const SizedBox(height: 8),
-                                      Text(tip['title'],
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                );
-                              },
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          _buildGuideCards(),
                           const SizedBox(height: 24),
 
-                          // Son taramalar
-                          const Text(
-                            '📋 Son Taramalar',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 12),
-
-                          if (_recentScans.isEmpty)
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Center(
-                                child: Column(
-                                  children: [
-                                    Text('📷', style: TextStyle(fontSize: 48)),
-                                    SizedBox(height: 8),
-                                    Text('Henüz tarama yapmadınız'),
-                                  ],
+                          // Son Taramalar Listesi
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '📋 Son Taramalar',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
                                 ),
                               ),
-                            )
-                          else
-                            ..._recentScans.map(_buildScanCard),
-
-                          const SizedBox(height: 80),
+                              if (_recentScans.length > 3)
+                                TextButton(
+                                  onPressed: () {
+                                    // Tümünü göster
+                                  },
+                                  child: const Text('Tümünü Gör'),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRecentScans(),
+                          const SizedBox(height: 100),
                         ],
                       ),
                     ),
@@ -291,35 +255,318 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildStatCard(String icon, String value, String label, Color color) {
+  // Modern İstatistik Kartı
+  Widget _buildModernStatCard({
+    required String icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: color.withAlpha(50),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         child: Column(
           children: [
-            Text(icon, style: const TextStyle(fontSize: 28)),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Text(icon, style: const TextStyle(fontSize: 24)),
+            ),
+            const SizedBox(height: 12),
             Text(
               value,
               style: TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.bold, color: color),
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-            Text(label,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  // ÖNE ÇIKAN SON TARAMA KARTI
+  Widget _buildLastScanCard() {
+    final lastScan = _recentScans.first;
+    final wasteIcons = {
+      'plastic': '♻️',
+      'glass': '🫙',
+      'metal': '🥫',
+      'paper': '📄',
+      'organic': '🍂',
+      'cardboard': '📦',
+      'trash': '🗑️',
+    };
+
+    final wasteColors = {
+      'plastic': Color(0xFFFFEB3B),
+      'glass': Color(0xFF4CAF50),
+      'metal': Color(0xFF9E9E9E),
+      'paper': Color(0xFF2196F3),
+      'organic': Color(0xFF795548),
+      'cardboard': Color(0xFF8D6E63),
+      'trash': Color(0xFF424242),
+    };
+
+    final type = lastScan['waste_type'] ?? 'unknown';
+    final icon = wasteIcons[type] ?? '♻️';
+    final color = wasteColors[type] ?? Colors.green;
+    final points = lastScan['points_earned'] ?? 10;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.8),
+            color,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('⚡', style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'SON TARAMA',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text(
+                icon,
+                style: const TextStyle(fontSize: 48),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      type.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${DateFormat('dd MMM, HH:mm').format(DateTime.parse(lastScan['created_at']))}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '+$points',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Günün İpucu Kartı
+  Widget _buildTipCard() {
+    final tip = _tips[DateTime.now().day % _tips.length];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF66BB6A), Color(0xFF43A047)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Text('💡', style: TextStyle(fontSize: 48)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Günün İpucu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  tip['tip'],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Rehber Kartları
+  Widget _buildGuideCards() {
+    return SizedBox(
+      height: 140,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _tips.length,
+        itemBuilder: (context, index) {
+          final tip = _tips[index];
+          return Container(
+            width: 120,
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: (tip['color'] as Color).withValues(alpha: 0.3),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (tip['color'] as Color).withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(tip['icon'], style: const TextStyle(fontSize: 40)),
+                const SizedBox(height: 12),
+                Text(
+                  tip['title'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: tip['color'] as Color,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // Son Taramalar Listesi
+  Widget _buildRecentScans() {
+    if (_recentScans.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Center(
+          child: Column(
+            children: [
+              Text('📷', style: TextStyle(fontSize: 64)),
+              SizedBox(height: 16),
+              Text(
+                'Henüz tarama yapmadınız',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children:
+          _recentScans.take(3).map((scan) => _buildScanCard(scan)).toList(),
     );
   }
 
@@ -329,22 +576,37 @@ class _HomeTabState extends State<HomeTab> {
       'glass': '🫙',
       'metal': '🥫',
       'paper': '📄',
-      'organic': '🍂'
+      'organic': '🍂',
+      'cardboard': '📦',
     };
 
     final type = scan['waste_type'] ?? 'unknown';
+    final icon = wasteIcons[type] ?? '♻️';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withAlpha(60)),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Text(wasteIcons[type] ?? '♻️', style: const TextStyle(fontSize: 32)),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(icon, style: const TextStyle(fontSize: 32)),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -352,11 +614,27 @@ class _HomeTabState extends State<HomeTab> {
               children: [
                 Text(
                   type.toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-                Text('+${scan['points_earned']} puan',
-                    style: TextStyle(color: Colors.grey[600])),
+                const SizedBox(height: 4),
+                Text(
+                  '+${scan['points_earned']} puan',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
               ],
+            ),
+          ),
+          Text(
+            DateFormat('HH:mm').format(DateTime.parse(scan['created_at'])),
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 12,
             ),
           ),
         ],

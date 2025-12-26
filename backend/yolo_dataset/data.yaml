@@ -1,0 +1,7 @@
+# TAM PATH kullanın (kendi path'inizi yazın)
+path: C:/ecosferprojects/flutter_application_1/backend/yolo_dataset
+train: images/train
+val: images/val
+
+nc: 6
+names: ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']

@@ -42,149 +42,164 @@ class _LeaderboardTabState extends State<LeaderboardTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F8),
       body: CustomScrollView(
         slivers: [
-          // Başlık
+          // HEADER
           SliverAppBar(
-            expandedHeight: 200,
-            floating: false,
+            expandedHeight: 230,
             pinned: true,
-            backgroundColor: const Color(0xFF2E7D32),
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text('🏆 Skor Tablosu'),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFFFFD700), Color(0xFF2E7D32)],
-                  ),
+            backgroundColor: Colors.transparent,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF43A047),
+                    Color(0xFF1B5E20),
+                  ],
                 ),
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 20),
-                      Text('🥇🥈🥉', style: TextStyle(fontSize: 40)),
-                      SizedBox(height: 8),
-                      Text(
-                        'En İyi Geri Dönüşümcüler',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ],
-                  ),
+              ),
+              child: FlexibleSpaceBar(
+                centerTitle: true,
+                title: const Text(
+                  'Skor Tablosu',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                background: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(height: 40),
+                    Icon(Icons.emoji_events, size: 72, color: Colors.amber),
+                    SizedBox(height: 10),
+                    Text(
+                      'En İyi Geri Dönüşüm Kahramanları',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
 
-          // Liderlik Tablosu
-          _isLoading
-              ? const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index >= _leaderboard.length) return null;
+          // LOADING
+          if (_isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
 
-                      final user = _leaderboard[index];
-                      final isCurrentUser = user['id'] == _currentUserId;
-                      final rank = index + 1;
+          // CONTENT
+          else ...[
+            // TOP 3
+            if (_leaderboard.length >= 3)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: _leaderboard
+                        .take(3)
+                        .toList()
+                        .asMap()
+                        .entries
+                        .map((entry) {
+                      final index = entry.key;
+                      final user = entry.value;
 
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isCurrentUser
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isCurrentUser
-                                ? Colors.green
-                                : Colors.grey.withOpacity(0.2),
-                            width: isCurrentUser ? 2 : 1,
-                          ),
-                        ),
-                        child: ListTile(
-                          leading: Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: _getRankColor(rank),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: rank <= 3
-                                  ? Text(
-                                      _getRankEmoji(rank),
-                                      style: const TextStyle(fontSize: 24),
-                                    )
-                                  : Text(
-                                      '$rank',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  user['display_name'] ?? 'Anonim',
-                                  style: TextStyle(
-                                    fontWeight: isCurrentUser
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                              if (isCurrentUser)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Text(
-                                    'Sen',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 12),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          subtitle: Text('${user['total_scans'] ?? 0} tarama'),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${user['total_points'] ?? 0} 🏆',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amber,
-                              ),
-                            ),
-                          ),
-                        ),
+                      return _TopRankCard(
+                        rank: index + 1,
+                        name: user['display_name'] ?? 'Anonim',
+                        points: user['total_points'] ?? 0,
                       );
-                    },
-                    childCount: _leaderboard.length,
+                    }).toList(),
                   ),
                 ),
+              ),
 
-          // Alt boşluk
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
-          ),
+            // LIST
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final user = _leaderboard[index];
+                  final rank = index + 1;
+                  final isCurrentUser = user['id'] == _currentUserId;
+
+                  return Card(
+                    elevation: isCurrentUser ? 6 : 2,
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: _getRankColor(rank),
+                        child: rank <= 3
+                            ? Text(
+                                _getRankEmoji(rank),
+                                style: const TextStyle(fontSize: 22),
+                              )
+                            : Text(
+                                '$rank',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                      ),
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              user['display_name'] ?? 'Anonim',
+                              style: TextStyle(
+                                fontWeight: isCurrentUser
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          if (isCurrentUser)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Sen',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ),
+                        ],
+                      ),
+                      subtitle: Text('${user['total_scans'] ?? 0} tarama'),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${user['total_points'] ?? 0} 🏆',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                childCount: _leaderboard.length,
+              ),
+            ),
+
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
+          ],
         ],
       ),
     );
@@ -195,9 +210,9 @@ class _LeaderboardTabState extends State<LeaderboardTab> {
       case 1:
         return Colors.amber;
       case 2:
-        return Colors.grey.shade400;
+        return Colors.grey;
       case 3:
-        return Colors.brown.shade400;
+        return Colors.brown;
       default:
         return Colors.green;
     }
@@ -214,5 +229,70 @@ class _LeaderboardTabState extends State<LeaderboardTab> {
       default:
         return '$rank';
     }
+  }
+}
+
+// TOP 3 CARD
+class _TopRankCard extends StatelessWidget {
+  final int rank;
+  final String name;
+  final int points;
+
+  const _TopRankCard({
+    required this.rank,
+    required this.name,
+    required this.points,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 110,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: rank == 1
+              ? [Colors.amber, Colors.orange]
+              : rank == 2
+                  ? [Colors.grey.shade300, Colors.grey.shade500]
+                  : [Colors.brown.shade300, Colors.brown.shade500],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            rank == 1
+                ? '🥇'
+                : rank == 2
+                    ? '🥈'
+                    : '🥉',
+            style: const TextStyle(fontSize: 32),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$points puan',
+            style: const TextStyle(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
   }
 }
