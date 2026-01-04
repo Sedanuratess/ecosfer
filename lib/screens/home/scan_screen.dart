@@ -17,6 +17,7 @@ class _ScanScreenState extends State<ScanScreen> {
   File? _selectedImage;
   bool _isAnalyzing = false;
   Map<String, dynamic>? _result;
+  String _statusMessage = 'Görsel analiz ediliyor...'; // Durum mesajı
 
   final _wasteTypes = ['plastic', 'glass', 'metal', 'paper', 'organic'];
   final _wasteInfo = {
@@ -150,16 +151,24 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Widget _buildBottomControls() {
     if (_isAnalyzing) {
-      return const Column(
+      return Column(
         children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2E7D32)),
           ),
           SizedBox(height: 16),
           Text(
-            'Görsel analiz ediliyor...',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            _statusMessage,
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
+          const SizedBox(height: 12),
+          if (_isAnalyzing)
+            TextButton(
+              onPressed: () {
+                setState(() => _isAnalyzing = false);
+              },
+              child: const Text('İptal', style: TextStyle(color: Colors.red)),
+            ),
         ],
       );
     }
@@ -399,7 +408,29 @@ class _ScanScreenState extends State<ScanScreen> {
   Future<void> _analyzeImage() async {
     if (_selectedImage == null) return;
 
-    setState(() => _isAnalyzing = true);
+    setState(() {
+      _isAnalyzing = true;
+      _statusMessage = 'Sunucuya bağlanılıyor...';
+    });
+
+    // Zamanlayıcı mesajları güncellemesi
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted && _isAnalyzing) {
+        setState(() => _statusMessage = 'Görsel gönderiliyor...');
+      }
+    });
+
+    Future.delayed(const Duration(seconds: 15), () {
+      if (mounted && _isAnalyzing) {
+        setState(() => _statusMessage = 'Sunucu uyanıyor (Bu işlem 1 dk sürebilir)...');
+      }
+    });
+
+    Future.delayed(const Duration(seconds: 45), () {
+      if (mounted && _isAnalyzing) {
+        setState(() => _statusMessage = 'Hala analiz ediliyor, lütfen bekleyin...');
+      }
+    });
 
     try {
       // Backend'e gönder

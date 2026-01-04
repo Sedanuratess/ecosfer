@@ -11,9 +11,9 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     
     <application
-        android:label="flutter_application_1"
+        android:label="Ecosfer"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"

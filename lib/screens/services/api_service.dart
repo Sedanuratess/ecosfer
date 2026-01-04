@@ -50,8 +50,8 @@ class ApiService {
 
       print('📤 Gönderiliyor: $fileName (${contentType.mimeType})');
 
-      // İsteği gönder
-      var streamedResponse = await request.send();
+      // İsteği gönder (Render cold start için 90sn timeout)
+      var streamedResponse = await request.send().timeout(const Duration(seconds: 90));
       var response = await http.Response.fromStream(streamedResponse);
 
       print('📥 Yanıt: ${response.statusCode}');
@@ -77,7 +77,7 @@ class ApiService {
           .get(
             Uri.parse('$baseUrl/health'),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
 
       return response.statusCode == 200;
     } catch (e) {
