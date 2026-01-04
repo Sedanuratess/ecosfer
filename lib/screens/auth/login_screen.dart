@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       _showMessage(e.message, isError: true);
     } catch (e) {
-      _showMessage('Bir hata oluştu', isError: true);
+      _showMessage('Hata: $e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

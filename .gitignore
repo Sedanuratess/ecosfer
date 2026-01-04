@@ -8,14 +8,28 @@ __pycache__/
 *.pyc
 
 # Machine Learning / Logs
+# Machine Learning / Logs
 runs/
-*.pt
+# *.pt # Model dosyalarını yüklemeliyiz!
 *.pth
 *.h5
 *.onnx
+
+# Datasets (Do NOT Upload)
+backend/data/
+backend/dataset/
+backend/yolo_dataset/
 
 # =====================
 # OS / Editor
 # =====================
 Thumbs.db
+
+# Flutter / Dart
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.packages
 

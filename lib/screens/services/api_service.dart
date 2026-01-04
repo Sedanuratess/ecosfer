@@ -4,8 +4,11 @@ import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 
 class ApiService {
-  // Backend URL - Emülatör için 10.0.2.2 kullanın
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  // Backend URL - Render.com (Production)
+  static const String baseUrl = 'https://ecoscan-api-x1w8.onrender.com';
+  
+  // Eski yerel adresler (Referans için):
+  // static const String baseUrl = 'http://10.0.2.2:8000'; // Emülatör
 
   // Gerçek cihaz için localhost kullanın:
   // static const String baseUrl = 'http://localhost:8000';
