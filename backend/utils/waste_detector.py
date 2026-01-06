@@ -85,8 +85,41 @@ class WasteDetector:
             }
         }
         
-        print("🔄 Dataset yükleniyor...")
-        self._load_dataset()
+        # Cache dosyası kontrolü
+        import pickle
+        cache_file = Path("features.pkl")
+        
+        if cache_file.exists():
+            print(f"🚀 Cache dosyası bulundu: {cache_file}")
+            try:
+                with open(cache_file, 'rb') as f:
+                    data = pickle.load(f)
+                    self.features_cache = data['features']
+                    self.categories = data['categories']
+                print(f"✅ {len(self.features_cache)} görsel yüklendi (Cache)")
+            except Exception as e:
+                print(f"⚠️ Cache okuma hatası: {e}")
+                print("🔄 Dataset taranıyor...")
+                self._load_dataset()
+        else:
+            print("🔄 Dataset taranıyor (Cache bulunamadı)...")
+            self._load_dataset()
+
+    def save_features(self, path):
+        """Özellikleri dosyaya kaydet"""
+        import pickle
+        try:
+            data = {
+                'features': self.features_cache,
+                'categories': self.categories
+            }
+            with open(path, 'wb') as f:
+                pickle.dump(data, f)
+            print(f"✅ Özellikler kaydedildi: {path}")
+            return True
+        except Exception as e:
+            print(f"❌ Kayıt hatası: {e}")
+            return False
     
     def _extract_features(self, image_path):
         """ResNet50 ile derin özellikler çıkar"""
