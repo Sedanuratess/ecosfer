@@ -14,15 +14,19 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  // GlobalKey'ler ile tab'lara erişim sağlıyoruz
+  final GlobalKey<HomeTabState> _homeTabKey = GlobalKey<HomeTabState>();
+  final GlobalKey<ProfileTabState> _profileTabKey = GlobalKey<ProfileTabState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          HomeTab(),
-          LeaderboardTab(),
-          ProfileTab(),
+        children: [
+          HomeTab(key: _homeTabKey),
+          const LeaderboardTab(),
+          ProfileTab(key: _profileTabKey),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -50,9 +54,19 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const ScanScreen()));
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ScanScreen()),
+          );
+
+          // Eğer tarama başarılı olduysa ve kaydedildiyse (result == true)
+          // Sayfaları yenile
+          if (result == true) {
+            _homeTabKey.currentState?.refresh();
+            _profileTabKey.currentState?.refresh();
+            print("🔄 Ana Sayfa ve Profil yenilendi!");
+          }
         },
         backgroundColor: const Color(0xFF2E7D32),
         child: const Icon(Icons.camera_alt, color: Colors.white),

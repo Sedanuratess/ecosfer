@@ -82,6 +82,14 @@ class WasteDetector:
                 'recyclable': False,
                 'points': 5,
                 'icon': '🗑️'
+            },
+            'textile': {
+                'name_tr': 'Tekstil',
+                'bin_type': 'Giysi Kumbarası',
+                'bin_color': '#E91E63',
+                'recyclable': True,
+                'points': 20,
+                'icon': '👕'
             }
         }
         

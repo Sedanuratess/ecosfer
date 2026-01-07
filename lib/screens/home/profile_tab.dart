@@ -6,13 +6,18 @@ class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
 
   @override
-  State<ProfileTab> createState() => _ProfileTabState();
+  @override
+  State<ProfileTab> createState() => ProfileTabState();
 }
 
-class _ProfileTabState extends State<ProfileTab> {
+class ProfileTabState extends State<ProfileTab> {
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
   int _userRank = 0;
+
+  Future<void> refresh() async {
+    await _loadProfile();
+  }
 
   @override
   void initState() {

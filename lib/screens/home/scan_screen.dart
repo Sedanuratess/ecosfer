@@ -410,27 +410,27 @@ class _ScanScreenState extends State<ScanScreen> {
 
     setState(() {
       _isAnalyzing = true;
-      _statusMessage = 'Sunucuya bağlanılıyor...';
+      _statusMessage = 'Analiz ediliyor...';
     });
 
-    // Zamanlayıcı mesajları güncellemesi
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted && _isAnalyzing) {
-        setState(() => _statusMessage = 'Görsel gönderiliyor...');
-      }
-    });
+    // Zamanlayıcı mesajları - Kullanıcıdan gizlendi
+    // Future.delayed(const Duration(seconds: 5), () {
+    //   if (mounted && _isAnalyzing) {
+    //     setState(() => _statusMessage = 'Görsel gönderiliyor...');
+    //   }
+    // });
 
-    Future.delayed(const Duration(seconds: 15), () {
-      if (mounted && _isAnalyzing) {
-        setState(() => _statusMessage = 'Sunucu uyanıyor (Bu işlem 1 dk sürebilir)...');
-      }
-    });
+    // Future.delayed(const Duration(seconds: 15), () {
+    //   if (mounted && _isAnalyzing) {
+    //     setState(() => _statusMessage = 'Sunucu uyanıyor (Bu işlem 1 dk sürebilir)...');
+    //   }
+    // });
 
-    Future.delayed(const Duration(seconds: 45), () {
-      if (mounted && _isAnalyzing) {
-        setState(() => _statusMessage = 'Hala analiz ediliyor, lütfen bekleyin...');
-      }
-    });
+    // Future.delayed(const Duration(seconds: 45), () {
+    //   if (mounted && _isAnalyzing) {
+    //     setState(() => _statusMessage = 'Hala analiz ediliyor, lütfen bekleyin...');
+    //   }
+    // });
 
     try {
       // Backend'e gönder
@@ -542,7 +542,7 @@ class _ScanScreenState extends State<ScanScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

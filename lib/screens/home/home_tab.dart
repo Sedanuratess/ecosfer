@@ -6,10 +6,11 @@ class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
   @override
-  State<HomeTab> createState() => _HomeTabState();
+  @override
+  State<HomeTab> createState() => HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
+class HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Map<String, dynamic>? _userData;
   List<Map<String, dynamic>> _recentScans = [];
   bool _isLoading = true;
@@ -17,36 +18,52 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
+  Future<void> refresh() async {
+    await _loadData();
+  }
+
   final List<Map<String, dynamic>> _tips = [
     {
       'icon': '♻️',
       'title': 'Plastik',
       'tip': 'Plastik şişeleri yıkayıp kapağını ayırın. Sarı kutuya atın.',
-      'color': Color(0xFFFFEB3B)
+      'color': Color(0xFFFFEB3B),
+      'details': 'Plastik atıklar (PET şişeler, şampuan kutuları vb.) yıkanıp sıkıştırılarak geri dönüşüme atılmalıdır.\n\n⚠️ Kirli ve yağlı plastikler dönüştürülemez.',
     },
     {
       'icon': '🫙',
       'title': 'Cam',
       'tip': 'Cam şişeleri kırmadan yeşil kutuya atın.',
-      'color': Color(0xFF4CAF50)
+      'color': Color(0xFF4CAF50),
+      'details': 'Cam sonsuz kez geri dönüştürülebilir bir malzemedir. Şişeleri ve kavanozları içi boş ve kapaksız olarak atınız.\n\n⚠️ Porselen ve seramikler cam kumbarasına atılmamalıdır.',
     },
     {
       'icon': '📄',
       'title': 'Kağıt',
       'tip': 'Islak veya yağlı kağıtları geri dönüşüme atmayın.',
-      'color': Color(0xFF2196F3)
+      'color': Color(0xFF2196F3),
+      'details': 'Gazete, dergi, karton kutular geri dönüştürülebilir.\n\n⚠️ Pizza kutusu gibi yağlı kağıtlar geri dönüştürülemez, bunları çöpe atınız.',
     },
     {
       'icon': '🥫',
       'title': 'Metal',
       'tip': 'Konserve kutularını yıkayın. Gri kutuya atın.',
-      'color': Color(0xFF9E9E9E)
+      'color': Color(0xFF9E9E9E),
+      'details': 'Konserve kutuları, metal içecek kutuları ve metal kapaklar geri dönüştürülebilir. İçlerini yıkayıp atınız.',
     },
     {
       'icon': '🍂',
       'title': 'Organik',
       'tip': 'Yemek artıklarını kahverengi kutuya atın.',
-      'color': Color(0xFF795548)
+      'color': Color(0xFF795548),
+      'details': 'Meyve-sebze kabukları, çay posaları ve yemek artıkları organik atıktır. Bunlardan kompost (gübre) yapılabilir veya biyogaz tesislerinde değerlendirilebilir.',
+    },
+    {
+      'icon': '👕',
+      'title': 'Tekstil',
+      'tip': 'Eski kıyafetlerinizi giysi kumbaralarına atın.',
+      'color': Color(0xFFE91E63),
+      'details': 'Kullanmadığınız temiz kıyafetleri, verilebilecek durumdaysa ihtiyaç sahiplerine, değilse tekstil geri dönüşüm kumbaralarına atınız.',
     },
   ];
 
@@ -498,40 +515,66 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         itemCount: _tips.length,
         itemBuilder: (context, index) {
           final tip = _tips[index];
-          return Container(
-            width: 120,
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: (tip['color'] as Color).withValues(alpha: 0.3),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: (tip['color'] as Color).withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(tip['icon'], style: const TextStyle(fontSize: 40)),
-                const SizedBox(height: 12),
-                Text(
-                  tip['title'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: tip['color'] as Color,
+          return InkWell(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Row(
+                      children: [
+                        Text(tip['icon'], style: const TextStyle(fontSize: 32)),
+                        const SizedBox(width: 8),
+                        Text(tip['title'] + ' Geri Dönüşümü'),
+                      ],
+                    ),
+                    content: Text(
+                      tip['details'] ?? tip['tip'],
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Tamam'),
+                      ),
+                    ],
                   ),
+                );
+              },
+              child: Container(
+                width: 120,
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: (tip['color'] as Color).withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (tip['color'] as Color).withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(tip['icon'], style: const TextStyle(fontSize: 40)),
+                    const SizedBox(height: 12),
+                    Text(
+                      tip['title'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: tip['color'] as Color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
         },
       ),
     );

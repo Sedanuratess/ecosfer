@@ -18,7 +18,7 @@ class ApiService {
 
   /// Görseli backend'e gönder ve analiz et
   Future<Map<String, dynamic>?> analyzeWaste(File imageFile) async {
-    try {
+
       var request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/api/analyze'),
@@ -50,7 +50,7 @@ class ApiService {
 
       print('📤 Gönderiliyor: $fileName (${contentType.mimeType})');
 
-      // İsteği gönder (Render cold start için 120sn timeout)
+    // Backend'e gönder (Render cold start için 120sn timeout)
       var streamedResponse = await request.send().timeout(const Duration(seconds: 120));
       var response = await http.Response.fromStream(streamedResponse);
 
@@ -62,12 +62,8 @@ class ApiService {
         return jsonResponse;
       } else {
         print('❌ Hata: ${response.statusCode} - ${response.body}');
-        return null;
+        throw Exception('Sunucu Hatası: ${response.statusCode}');
       }
-    } catch (e) {
-      print('🔥 API Hatası: $e');
-      return null;
-    }
   }
 
   /// Backend sağlık kontrolü
