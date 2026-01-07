@@ -136,12 +136,10 @@ Kullanıcılar topladıkları puanlara göre rütbe atlarlar:
 
 ---
 
-## 📄 Lisans
 
-Bu proje MIT lisansı ile lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakınız.
 
 ---
 
 <p align="center">
-  Made with ❤️ for a cleaner world.
+  Temiz bir dünya için ❤️ 
 </p>
